@@ -78,7 +78,7 @@ function changeMapProvider() {
             attribution: '© <a href="https://www.cyclosm.org">CyclOSM</a>, © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
             noWrap: true
         }),
-        nincsmapbox: L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB5xWOw', {
+        mapbox: L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB5xWOw', {
             attribution: '© <a href="https://www.mapbox.com">Mapbox</a>, © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
             noWrap: true
         }),
@@ -127,7 +127,7 @@ function changeMapProvider() {
 
 function sanitizeInput(input) {
     if (input === null || input === undefined || input === '') return '';
-    return String(input).replace(/</g, '<').replace(/>/g, '>').replace(/"/g, '"').replace(/'/g, '');
+    return String(input).replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function addOrUpdateMarker(data, index = null, saveToSheets = true) {
@@ -155,7 +155,7 @@ function addOrUpdateMarker(data, index = null, saveToSheets = true) {
             iconAnchor: [16, 32],
             popupAnchor: [0, -32]
         });
-        const marker = L.marker([data.LATITUD, data.LONGITUD], { icon }).addTo(map);
+        const marker = L.marker([data.LATITUD, data.LONGITUD], { icon, draggable: true }).addTo(map);
         markerLayers.push(marker);
 
         const filteredIndex = filteredIndices.indexOf(index !== null ? index : allData.length - 1);
@@ -197,6 +197,32 @@ function addOrUpdateMarker(data, index = null, saveToSheets = true) {
             Coordenadas: ${data.LATITUD.toFixed(4)}, ${data.LONGITUD.toFixed(4)}<br>
             <button onclick="editMarker(${index !== null ? index : markers.length})">Editar</button>
         `);
+
+        marker.on('dragend', function(e) {
+            const { lat, lng } = e.target.getLatLng();
+            if (index !== null) {
+                allData[index].LATITUD = lat;
+                allData[index].LONGITUD = lng;
+                markerLayers.forEach(layer => map.removeLayer(layer));
+                markerLayers = [];
+                const newMarker = L.marker([lat, lng], { icon, draggable: true }).addTo(map);
+                newMarker.bindPopup(marker.getPopup().getContent());
+                markerLayers.push(newMarker);
+                if (filteredIndex !== -1) {
+                    const newNumberMarker = L.marker([lat, lng], { icon: numberLabel }).addTo(map);
+                    markerLayers.push(newNumberMarker);
+                    const newTimeMarker = L.marker([lat, lng], { icon: timeLabel }).addTo(map);
+                    markerLayers.push(newTimeMarker);
+                }
+                markers[index].layers = markerLayers;
+                document.getElementById('editIndex').value = index;
+                document.getElementById('lat').value = lat.toFixed(6);
+                document.getElementById('lng').value = lng.toFixed(6);
+                saveToGoogleSheets(allData[index], index);
+                updateTable(allData, parseInt(document.getElementById('pageInfo').textContent.match(/\d+/)[0]));
+                console.log(`Marcador ${index} actualizado: Lat=${lat}, Lng=${lng}`);
+            }
+        });
     }
 
     if (index !== null) {
@@ -455,6 +481,10 @@ function editMarker(index) {
     document.getElementById('editIndex').value = index;
     document.getElementById('lat').value = data.LATITUD !== undefined ? data.LATITUD : '';
     document.getElementById('lng').value = data.LONGITUD !== undefined ? data.LONGITUD : '';
+    if (data.LATITUD && data.LONGITUD) {
+        map.setView([data.LATITUD, data.LONGITUD], 15);
+        markers[index].layers[0].openPopup();
+    }
 }
 
 function saveToGoogleSheets(data, index = null) {
@@ -572,14 +602,19 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const data = {};
-        CONFIG.EXPECTED_COLUMNS.forEach(col => {
-            data[col] = '';
-        });
+        const editIndex = document.getElementById('editIndex').value;
+        let data;
+        if (editIndex) {
+            data = allData[parseInt(editIndex)];
+        } else {
+            data = {};
+            CONFIG.EXPECTED_COLUMNS.forEach(col => {
+                data[col] = '';
+            });
+        }
         data.LATITUD = lat;
         data.LONGITUD = lng;
 
-        const editIndex = document.getElementById('editIndex').value;
         addOrUpdateMarker(data, editIndex ? parseInt(editIndex) : null);
         document.getElementById('pointForm').reset();
         document.getElementById('editIndex').value = '';
@@ -643,7 +678,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     iconAnchor: [16, 32],
                     popupAnchor: [0, -32]
                 });
-                const marker = L.marker([data.LATITUD, data.LONGITUD], { icon }).addTo(map);
+                const marker = L.marker([data.LATITUD, data.LONGITUD], { icon, draggable: true }).addTo(map);
                 markerEntry.layers.push(marker);
 
                 const numberLabel = L.divIcon({
@@ -682,6 +717,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     Coordenadas: ${data.LATITUD.toFixed(4)}, ${data.LONGITUD.toFixed(4)}<br>
                     <button onclick="editMarker(${originalIndex})">Editar</button>
                 `);
+
+                marker.on('dragend', function(e) {
+                    const { lat, lng } = e.target.getLatLng();
+                    allData[originalIndex].LATITUD = lat;
+                    allData[originalIndex].LONGITUD = lng;
+                    markerEntry.layers.forEach(layer => map.removeLayer(layer));
+                    markerEntry.layers = [];
+                    const newMarker = L.marker([lat, lng], { icon, draggable: true }).addTo(map);
+                    newMarker.bindPopup(marker.getPopup().getContent());
+                    markerEntry.layers.push(newMarker);
+                    const newNumberMarker = L.marker([lat, lng], { icon: numberLabel }).addTo(map);
+                    markerEntry.layers.push(newNumberMarker);
+                    const newTimeMarker = L.marker([lat, lng], { icon: timeLabel }).addTo(map);
+                    markerEntry.layers.push(newTimeMarker);
+                    markers[originalIndex].layers = markerEntry.layers;
+                    document.getElementById('editIndex').value = originalIndex;
+                    document.getElementById('lat').value = lat.toFixed(6);
+                    document.getElementById('lng').value = lng.toFixed(6);
+                    saveToGoogleSheets(allData[originalIndex], originalIndex);
+                    updateTable(allData, parseInt(document.getElementById('pageInfo').textContent.match(/\d+/)[0]));
+                    console.log(`Marcador ${originalIndex} actualizado: Lat=${lat}, Lng=${lng}`);
+                });
             }
         });
 
