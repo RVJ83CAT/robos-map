@@ -1,0 +1,15 @@
+Ignorar archivos generados por Maven
+
+/target/
+
+Ignorar credenciales sensibles
+
+src/main/resources/credentials.json
+
+Ignorar archivos temporales
+
+*.log *.tmp
+
+Ignorar configuraciones de IDE
+
+.idea/ *.iml
