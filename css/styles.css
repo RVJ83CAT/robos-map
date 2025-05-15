@@ -1,0 +1,54 @@
+/* Estilos generales */
+#map { height: 600px; width: 100%; margin-top: 20px; }
+#map-loading { display: flex; align-items: center; justify-content: center; height: 600px; background: #f0f0f0; }
+.form-container { margin: 20px 0; }
+.form-container label { display: block; margin: 5px 0; }
+.form-container input, .form-container textarea, .form-container select { width: 100%; padding: 5px; }
+.form-container button { margin-top: 10px; padding: 10px; cursor: pointer; }
+.filter-container { display: flex; gap: 10px; align-items: flex-end; }
+
+/* Estilos de la tabla */
+table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 10px; line-height: 1.2; }
+th, td { border: 1px solid #ddd; padding: 3px; text-align: center; }
+th { background-color: #f2f2f2; max-width: 60px; white-space: nowrap; }
+td { max-width: 60px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+td.delito { max-width: 200px; white-space: normal; }
+td.fecha, td.hora { max-width: 80px; white-space: nowrap; }
+td.direccion { max-width: 150px; white-space: normal; }
+td.circunstancias { max-width: 400px; white-space: normal; }
+th.secondary, td.secondary { display: none; }
+tr:nth-child(even) { background-color: #f9f9f9; }
+tr.selected { background-color: #d0e7ff; }
+.edit-btn { padding: 3px 6px; cursor: pointer; font-size: 10px; }
+
+/* Estilos de paginación */
+.table-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.pagination { display: flex; gap: 10px; align-items: center; }
+.pagination button { padding: 5px 10px; cursor: pointer; }
+.pagination button:disabled { cursor: not-allowed; opacity: 0.5; }
+
+/* Estilos de error y spinner */
+.error { color: red; font-size: 12px; }
+#loadingSpinner { background: rgba(0, 0, 0, 0.1); border-radius: 5px; }
+#loadingSpinner span { font-size: 16px; font-weight: bold; }
+
+/* Estilos responsivos */
+@media (max-width: 600px) {
+    table { font-size: 8px; }
+    .form-container { flex-direction: column; }
+    .filter-container { flex-direction: column; align-items: stretch; }
+    #map { height: 400px; }
+    .pagination { flex-direction: column; gap: 5px; }
+}
+
+/* Clase para accesibilidad */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
