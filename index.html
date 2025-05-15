@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PANORAMA DE LOS ROBOS</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="js/script.js" defer></script>
+</head>
+<body>
+    <div id="map-loading">Cargando mapa...</div>
+    <div id="map" style="display: none;"></div>
+    
+    <div id="sidebar">
+        <div class="panel">
+            <h2>Lista de Casos</h2>
+            <div class="pagination">
+                <button id="prevPage" disabled>Anterior</button>
+                <span id="pageInfo">Página 1 de 1</span>
+                <button id="nextPage" disabled>Siguiente</button>
+            </div>
+            <table id="casesTable">
+                <thead>
+                    <tr>
+                        <th>Nº</th>
+                        <th>Clasificación</th>
+                        <th>Delito</th>
+                        <th>Fecha</th>
+                        <th>Día</th>
+                        <th>Hora</th>
+                        <th>Rango Hora</th>
+                        <th>Lugar</th>
+                        <th>Dirección</th>
+                        <th>Circunstancias</th>
+                        <th>Cuadrante</th>
+                        <th>Número Parte</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="casesTableBody"></tbody>
+            </table>
+        </div>
+        
+        <div class="panel">
+            <h2>Cargar Datos</h2>
+            <button id="loadFromSheets">Cargar desde Google Sheets</button>
+        </div>
+
+        <div class="panel">
+            <h2>Seleccionar Cartografía:</h2>
+            <select id="mapProvider" onchange="changeMapProvider()">
+                <option value="osm">OpenStreetMap (Calles)</option>
+                <option value="carto">Carto Light</option>
+                <option value="stamen">Stamen Terrain</option>
+                <option value="esri_street">Esri WorldStreetMap (Calles)</option>
+                <option value="esri_imagery">Esri WorldImagery</option>
+                <option value="opentopo">OpenTopoMap</option>
+                <option value="thunderforest">Thunderforest Outdoors (Calles)</option>
+                <option value="cyclosm">CyclOSM</option>
+                <option value="mapbox">Mapbox Streets (Calles)</option>
+                <option value="carto_dark">Carto Dark (High Contrast)</option>
+                <option value="waze_traffic">Waze (Tráfico y Calles)</option>
+                <option value="esri_topo">Esri WorldTopoMap (Calles)</option>
+                <option value="mapbox_satellite_streets">Mapbox Satellite Streets (Calles)</option>
+                <option value="google_street">Google Maps Streets (Calles)</option>
+                <option value="google_hybrid">Google Maps Hybrid (Calles)</option>
+                <option value="ign_spain">IGN Spain (Calles y Numeración)</option>
+                <option value="buenos_aires">Buenos Aires Mapa Interactivo (Calles y Numeración)</option>
+            </select>
+        </div>
+
+        <div class="panel">
+            <h2>Filtrar Casos</h2>
+            <form id="filterForm">
+                <label>Fecha Inicio: <input type="date" id="startDate" placeholder="Seleccione la fecha de inicio para el filtro"></label>
+                <label>Fecha Fin: <input type="date" id="endDate" placeholder="Seleccione la fecha de fin para el filtro"></label>
+                <label>Delito: <select id="delitoFilter"><option value="">Todos</option></select></label>
+                <label>Rango Hora: <select id="rangoHoraFilter"><option value="">Todos</option></select></label>
+                <label>Cuadrante: <select id="cuadranteFilter"><option value="">Todos</option></select></label>
+                <label>Búsqueda Textual: <input type="text" id="textFilter" placeholder="Ingrese texto para buscar en la columna Circunstancias"></label>
+                <button type="submit">Filtrar</button>
+                <button type="button" onclick="resetFilter()">Restablecer</button>
+            </form>
+        </div>
+
+        <div class="panel">
+            <h2>Añadir/Editar Delito</h2>
+            <form id="pointForm">
+                <input type="hidden" id="editIndex">
+                <label>Latitud: <input type="number" id="lat" step="any" placeholder="Ingrese la latitud (entre -90 y 90)"></label>
+                <label>Longitud: <input type="number" id="lng" step="any" placeholder="Ingrese la longitud (entre -180 y 180)"></label>
+                <button type="submit">Guardar Delito</button>
+            </form>
+        </div>
+
+        <div class="panel">
+            <button id="downloadCsv">Descargar CSV</button>
+        </div>
+
+        <div id="loadingSpinner" style="display: none;">Cargando...</div>
+        <div id="errorMessage"></div>
+    </div>
+</body>
+</html>
